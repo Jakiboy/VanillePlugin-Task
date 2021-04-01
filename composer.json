@@ -1,0 +1,28 @@
+{
+  "name": "jakiboy/vanilleplugin-task",
+  "version" : "0.1.0",
+  "type": "library",
+  "description": "Add Asynchronous Tasks for VanillePlugin",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Jihad Sinnaour",
+      "email": "mail@jihadsinnaour.com",
+      "role": "Founder"
+    },
+    {
+      "name": "Softgine",
+      "email": "e-mailing@soft-gine.com",
+      "role": "Developer"
+    }
+  ],
+  "require": {
+    "php": ">=5.6.30",
+    "jakiboy/vanilleplugin": "^0.5"
+  },
+  "autoload": {
+    "psr-4" : {
+      "VanillePluginTask\\" : "src/"
+    }
+  }
+}
