@@ -2,7 +2,7 @@
 /**
  * @author    : JIHAD SINNAOUR
  * @package   : VanillePluginTask
- * @version   : 0.1.0
+ * @version   : 0.1.1
  * @copyright : (c) 2018 - 2021 JIHAD SINNAOUR <mail@jihadsinnaour.com>
  * @link      : https://jakiboy.github.io/VanillePluginTask/
  * @license   : MIT
@@ -10,7 +10,7 @@
  * This file if a part of VanillePluginTask Framework
  */
 
-namespace VanillePluginTask\lib;
+namespace VanillePluginTask;
 
 use VanillePlugin\lib\PluginOptions;
 use VanillePlugin\lib\Request;
