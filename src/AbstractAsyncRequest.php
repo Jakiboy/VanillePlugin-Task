@@ -7,17 +7,19 @@
  * @link      : https://jakiboy.github.io/VanillePluginTask/
  * @license   : MIT
  *
- * This file if a part of VanillePluginTask Framework
+ * This file if a part of VanillePluginTask
+ * Cloned from deliciousbrains/wp-background-processing
  */
 
 namespace VanillePluginTask;
 
-use VanillePlugin\lib\PluginOptions;
+use VanillePlugin\int\PluginNameSpaceInterface;
+use VanillePlugin\lib\Db;
 use VanillePlugin\lib\Request;
 use VanillePlugin\inc\Stringify;
 use VanillePlugin\inc\Server;
 
-abstract class AbstractAsyncRequest extends PluginOptions
+abstract class AbstractAsyncRequest extends Db
 {
 	/**
 	 * @access protected
@@ -30,13 +32,14 @@ abstract class AbstractAsyncRequest extends PluginOptions
 	protected $data = [];
 
 	/**
-	 * Initiate new async request
+	 * Init new async request
 	 *
 	 * @param void
 	 */
 	public function __construct()
 	{
-		$this->id = "{$this->getNameSpace()}-{$this->action}";
+		$this->init();
+		$this->id = $this->action;
 		$this->addAction("wp_ajax_{$this->id}", [$this,'maybeHandle']);
 		$this->addAction("wp_ajax_nopriv_{$this->id}", [$this,'maybeHandle']);
 	}
@@ -65,6 +68,23 @@ abstract class AbstractAsyncRequest extends PluginOptions
 		$req = new Request();
 		$res = $req->post(Stringify::escapeUrl($url),$this->getPostArgs());
 		return $res->getBody();
+	}
+
+	/**
+	 * Check for correct nonce and pass to handler
+	 *
+	 * @param void
+	 * @return void
+	 */
+	public function maybeHandle()
+	{
+		// Prevent other requests while processing
+		$this->closeSession();
+		// Security
+		$this->checkAjaxReferer($this->id,'nonce');
+		// Handle request
+		$this->handle();
+		die();
 	}
 
 	/**
@@ -118,25 +138,6 @@ abstract class AbstractAsyncRequest extends PluginOptions
 			'cookies'   => $_COOKIE,
 			'sslverify' => Server::isHttps()
 		];
-	}
-
-	/**
-	 * Check for correct nonce and pass to handler
-	 *
-	 * @param void
-	 * @return void
-	 */
-	public function maybeHandle()
-	{
-		// Prevent other requests while processing
-		$this->closeSession();
-
-		// Security
-		$this->checkAjaxReferer($this->id,'nonce');
-
-		// Handle request
-		$this->handle();
-		die();
 	}
 
 	/**

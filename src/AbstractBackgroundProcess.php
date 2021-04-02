@@ -7,12 +7,14 @@
  * @link      : https://jakiboy.github.io/VanillePluginTask/
  * @license   : MIT
  *
- * This file if a part of VanillePluginTask Framework
+ * This file if a part of VanillePluginTask
+ * Cloned from deliciousbrains/wp-background-processing
  */
 
 namespace VanillePluginTask;
 
 use VanillePlugin\inc\System;
+use VanillePlugin\inc\Stringify;
 
 abstract class AbstractBackgroundProcess extends AbstractAsyncRequest
 {
@@ -31,7 +33,7 @@ abstract class AbstractBackgroundProcess extends AbstractAsyncRequest
 	protected $cronInterval;
 
 	/**
-	 * Initiate new background process
+	 * Init new background process
 	 *
 	 * @param void
 	 */
@@ -40,19 +42,20 @@ abstract class AbstractBackgroundProcess extends AbstractAsyncRequest
 		parent::__construct();
 		$this->cronActionId = "{$this->id}-cron";
 		$this->cronIntervalId = "{$this->id}-cron-interval";
-		$this->addAction($this->cronActionId, [$this,'handleCronHealthcheck']);
-		$this->addFilter('cron_schedules', [$this,'scheduleCronHealthcheck']);
+		$this->addAction($this->cronActionId, [$this,'handleCron']);
+		$this->addFilter('cron_schedules', [$this,'scheduleCron']);
 	}
 
 	/**
-	 * Dispatch
+	 * Dispatch process
 	 *
 	 * @access public
+	 * @param void
 	 * @return void
 	 */
 	public function dispatch()
 	{
-		// Schedule the cron healthcheck
+		// Schedule the cron event
 		$this->scheduleEvent();
 
 		// Perform remote post
@@ -60,8 +63,9 @@ abstract class AbstractBackgroundProcess extends AbstractAsyncRequest
 	}
 
 	/**
-	 * Push to queue
+	 * Push data to queue
 	 *
+	 * @access public
 	 * @param mixed $data
 	 * @return object AbstractBackgroundProcess
 	 */
@@ -74,6 +78,7 @@ abstract class AbstractBackgroundProcess extends AbstractAsyncRequest
 	/**
 	 * Save queue
 	 *
+	 * @access public
 	 * @param void
 	 * @return object
 	 */
@@ -89,6 +94,7 @@ abstract class AbstractBackgroundProcess extends AbstractAsyncRequest
 	/**
 	 * Update queue
 	 *
+	 * @access public
 	 * @param string $key
 	 * @param array $data
 	 * @return object
@@ -104,6 +110,7 @@ abstract class AbstractBackgroundProcess extends AbstractAsyncRequest
 	/**
 	 * Delete queue
 	 *
+	 * @access public
 	 * @param string $key
 	 * @return object
 	 */
@@ -114,20 +121,25 @@ abstract class AbstractBackgroundProcess extends AbstractAsyncRequest
 	}
 
 	/**
-	 * Generate key
+	 * Cancel process
 	 *
-	 * @param int $length
-	 * @return string
+	 * @access public
+	 * @param void
+	 * @return void
 	 */
-	protected function generateKey($length = 64)
+	public function cancel()
 	{
-		$unique = md5(microtime().rand());
-		return substr("{$this->id}_batch_{$unique}", 0, $length);
+		if ( !$this->isEmptyQueue() ) {
+			$batch = $this->getBatch();
+			$this->delete($batch->key);
+			wp_clear_scheduled_hook($this->cronActionId);
+		}
 	}
 
 	/**
 	 * Maybe process queue
 	 *
+	 * @access protected
 	 * @param void
 	 * @return void
 	 */
@@ -137,7 +149,7 @@ abstract class AbstractBackgroundProcess extends AbstractAsyncRequest
 		$this->closeSession();
 
 		// Check
-		if ( $this->isProcessRunning() || $this->isQueueEmpty() ) {
+		if ( $this->isRunning() || $this->isEmptyQueue() ) {
 			die();
 		}
 
@@ -150,39 +162,83 @@ abstract class AbstractBackgroundProcess extends AbstractAsyncRequest
 	}
 
 	/**
+	 * Schedule cron
+	 *
+	 * @access public
+	 * @param mixed $schedules
+	 * @return mixed
+	 */
+	public function scheduleCron($schedules)
+	{
+		$interval = $this->applyFilter("{$this->id}-cron-interval", 5);
+		if ( $this->cronInterval ) {
+			$interval = $this->applyFilter("{$this->id}-cron-interval", $this->cronInterval);
+		}
+		$schedules["{$this->id}-cron-interval"] = [
+			'interval' => MINUTE_IN_SECONDS * $interval,
+			'display'  => sprintf( __('Every %d minutes'), $interval)
+		];
+		return $schedules;
+	}
+
+	/**
+	 * Handle cron
+	 *
+	 * @access public
+	 * @param void
+	 * @return void
+	 */
+	public function handleCron()
+	{
+		if ( $this->isRunning() ) {
+			exit;
+		}
+		if ( $this->isEmptyQueue() ) {
+			$this->clearScheduledEvent();
+			exit;
+		}
+		$this->handle();
+		exit;
+	}
+
+	/**
+	 * Generate batch key
+	 *
+	 * @access protected
+	 * @param int $length
+	 * @return string
+	 */
+	protected function generateKey($length = 64)
+	{
+		$unique = md5(microtime().rand());
+		return substr("{$this->id}-batch-{$unique}",0,$length);
+	}
+
+	/**
 	 * Is queue empty
 	 *
+	 * @access protected
 	 * @param void
 	 * @return bool
 	 */
-	protected function isQueueEmpty()
+	protected function isEmptyQueue()
 	{
-		global $wpdb;
-		$table  = $wpdb->options;
-		$column = 'option_name';
-
-		if ( is_multisite() ) {
-			$table  = $wpdb->sitemeta;
-			$column = 'meta_key';
-		}
-		$key = $this->id . '_batch_%';
-		$count = $wpdb->get_var( $wpdb->prepare( "
-			SELECT COUNT(*)
-			FROM {$table}
-			WHERE {$column} LIKE %s
-		", $key ) );
+		$key = "{$this->id}-batch-%";
+		$sql = "SELECT COUNT(*) FROM `{$this->db->options}` WHERE `option_name` LIKE %s;";
+		$count = $this->db->get_var($this->db->prepare($sql,$key));
 		return !($count > 0);
 	}
 
 	/**
 	 * Is process running
 	 *
+	 * @access protected
 	 * @param void
 	 * @return void
 	 */
-	protected function isProcessRunning()
+	protected function isRunning()
 	{
-		if ( $this->getTransient("{$this->id}-process-lock" )) {
+		if ( $this->getTransient("{$this->id}-process-lock") ) {
 			return true;
 		}
 		return false;
@@ -191,10 +247,11 @@ abstract class AbstractBackgroundProcess extends AbstractAsyncRequest
 	/**
 	 * Lock process
 	 *
+	 * @access protected
 	 * @param void
 	 * @return void
 	 */
-	protected function lockProcess()
+	protected function lock()
 	{
 		$this->startTime = time();
 		$duration = $this->applyFilter("{$this->id}-default-lock-duration", 20);
@@ -204,10 +261,11 @@ abstract class AbstractBackgroundProcess extends AbstractAsyncRequest
 	/**
 	 * Unlock process
 	 *
+	 * @access protected
 	 * @param void
 	 * @return object
 	 */
-	protected function unlockProcess()
+	protected function unlock()
 	{
 		$this->deleteTransient("{$this->id}-process-lock");
 		return $this;
@@ -216,58 +274,39 @@ abstract class AbstractBackgroundProcess extends AbstractAsyncRequest
 	/**
 	 * Get batch
 	 *
+	 * @access protected
 	 * @param void
-	 * @return stdClass Return the first batch from the queue
+	 * @return object
 	 */
 	protected function getBatch()
 	{
-		global $wpdb;
-
-		$table        = $wpdb->options;
-		$column       = 'option_name';
-		$key_column   = 'option_id';
-		$value_column = 'option_value';
-
-		if ( is_multisite() ) {
-			$table        = $wpdb->sitemeta;
-			$column       = 'meta_key';
-			$key_column   = 'meta_id';
-			$value_column = 'meta_value';
-		}
-
-		$key = $this->id . '_batch_%';
-
-		$query = $wpdb->get_row( $wpdb->prepare( "
-			SELECT *
-			FROM {$table}
-			WHERE {$column} LIKE %s
-			ORDER BY {$key_column} ASC
-			LIMIT 1
-		", $key ) );
-
-		$batch       = new \stdClass();
-		$batch->key  = $query->$column;
-		$batch->data = maybe_unserialize( $query->$value_column );
-
+		$key = "{$this->id}-batch-%";
+		$sql = "SELECT * FROM `{$this->db->options}` WHERE `option_name` LIKE %s ORDER BY `option_id` ASC LIMIT 1;";
+		$query = $this->db->get_row($this->db->prepare($sql,$key));
+		$batch = new \stdClass();
+		$batch->key = $query->option_name;
+		$batch->data = Stringify::unserialize($query->option_value);
 		return $batch;
 	}
 
 	/**
-	 * Handle
+	 * Handle process
 	 *
+	 * @access protected
 	 * @param void
 	 * @return void
-	 * Pass each queue item to the task handler, while remaining
-	 * within server memory and time limit constraints.
 	 */
 	protected function handle()
 	{
-		$this->lockProcess();
+		// Lock process
+		$this->lock();
+
+		// Loop for process
 		do {
 			$batch = $this->getBatch();
 			foreach ( $batch->data as $key => $value ) {
 				$task = $this->task( $value );
-				if ( false !== $task ) {
+				if ( $task !== false ) {
 					$batch->data[$key] = $task;
 				} else {
 					unset($batch->data[$key]);
@@ -282,10 +321,13 @@ abstract class AbstractBackgroundProcess extends AbstractAsyncRequest
 			} else {
 				$this->delete($batch->key);
 			}
-		} while ( !$this->isTimeOut() && !System::isMemoryOut() && !$this->isQueueEmpty() );
-		$this->unlockProcess();
+		} while ( !$this->isTimeOut() && !System::isMemoryOut() && !$this->isEmptyQueue() );
+
+		// Unlock process
+		$this->unlock();
+
 		// Start next batch or complete process
-		if ( ! $this->isQueueEmpty() ) {
+		if ( ! $this->isEmptyQueue() ) {
 			$this->dispatch();
 		} else {
 			$this->complete();
@@ -296,6 +338,7 @@ abstract class AbstractBackgroundProcess extends AbstractAsyncRequest
 	/**
 	 * Time out
 	 *
+	 * @access protected
 	 * @param void
 	 * @return bool
 	 */
@@ -312,6 +355,7 @@ abstract class AbstractBackgroundProcess extends AbstractAsyncRequest
 	/**
 	 * Complete process
 	 *
+	 * @access protected
 	 * @param void
 	 * @return void
 	 */
@@ -321,47 +365,9 @@ abstract class AbstractBackgroundProcess extends AbstractAsyncRequest
 	}
 
 	/**
-	 * Schedule cron healthcheck
-	 *
-	 * @access public
-	 * @param mixed $schedules
-	 * @return mixed
-	 */
-	public function scheduleCronHealthcheck($schedules)
-	{
-		$interval = $this->applyFilter("{$this->id}-cron-interval", 5);
-		if ( $this->cronInterval ) {
-			$interval = $this->applyFilter("{$this->id}-cron-interval", $this->cronInterval);
-		}
-		$schedules["{$this->id}-cron-interval"] = [
-			'interval' => MINUTE_IN_SECONDS * $interval,
-			'display'  => sprintf( __('Every %d minutes'), $interval)
-		];
-		return $schedules;
-	}
-
-	/**
-	 * Handle cron healthcheck
-	 *
-	 * @param void
-	 * @return void
-	 */
-	public function handleCronHealthcheck()
-	{
-		if ( $this->isProcessRunning() ) {
-			exit;
-		}
-		if ( $this->isQueueEmpty() ) {
-			$this->clearScheduledEvent();
-			exit;
-		}
-		$this->handle();
-		exit;
-	}
-
-	/**
 	 * Schedule event
 	 *
+	 * @access protected
 	 * @param void
 	 * @return void
 	 */
@@ -375,6 +381,7 @@ abstract class AbstractBackgroundProcess extends AbstractAsyncRequest
 	/**
 	 * Clear scheduled event
 	 *
+	 * @access protected
 	 * @param void
 	 * @return void
 	 */
@@ -387,23 +394,9 @@ abstract class AbstractBackgroundProcess extends AbstractAsyncRequest
 	}
 
 	/**
-	 * Cancel Process
-	 *
-	 * @param void
-	 * @return void
-	 */
-	public function cancelProcess()
-	{
-		if ( !$this->isQueueEmpty() ) {
-			$batch = $this->getBatch();
-			$this->delete($batch->key);
-			wp_clear_scheduled_hook($this->cronActionId);
-		}
-	}
-
-	/**
 	 * Perform task
 	 *
+	 * @access protected
 	 * @param mixed $item
 	 * @return mixed
 	 */
