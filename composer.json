@@ -1,8 +1,19 @@
 {
   "name": "jakiboy/vanilleplugin-task",
-  "version" : "0.1.3",
+  "version": "0.1.4",
   "type": "library",
-  "description": "Add Asynchronous Tasks for VanillePlugin",
+  "description": "Asynchronous Tasks for VanillePlugin",
+  "keywords":[
+    "VanillePlugin",
+    "WordPress",
+    "WordPress-asynchronous",
+    "WordPress-Plugin",
+    "WordPress-Plugin-Framework",
+    "WordPress-Tasks",
+    "WordPress-Queue",
+    "Boilerplate"
+  ],
+  "homepage":"https://jakiboy.github.io/VanillePlugin/",
   "license": "MIT",
   "authors": [
     {
@@ -17,12 +28,15 @@
     }
   ],
   "require": {
-    "php": ">=5.6.30",
-    "jakiboy/vanilleplugin": "*"
+    "php":">=7.2",
+    "jakiboy/vanilleplugin":"0.9.0"
   },
   "autoload": {
-    "psr-4" : {
-      "VanillePluginTask\\" : "src/"
+    "psr-4": {
+      "VanilleTask\\": "src/"
     }
+  },
+  "suggest":{
+    "jakiboy/vanilleplugin-packager":"Composer Namespaces Prefixer for WordPress Plugins"
   }
 }

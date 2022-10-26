@@ -1,17 +1,20 @@
 <?php
 /**
- * @author    : JIHAD SINNAOUR
- * @package   : VanillePluginTask
- * @version   : 0.1.3
- * @copyright : (c) 2018 - 2021 JIHAD SINNAOUR <mail@jihadsinnaour.com>
- * @link      : https://jakiboy.github.io/VanillePluginTask/
- * @license   : MIT
+ * @author     : JIHAD SINNAOUR
+ * @package    : VanillePlugin
+ * @subpackage : VanilleTask
+ * @version    : 0.1.4
+ * @copyright  : (c) 2018 - 2022 JIHAD SINNAOUR <mail@jihadsinnaour.com>
+ * @link       : https://jakiboy.github.io/VanillePluginTask/
+ * @license    : MIT
  *
- * This file if a part of VanillePluginTask
- * Cloned from deliciousbrains/wp-background-processing
+ * This file if a part of VanillePlugin Framework.
+ * @see Credits: https://github.com/deliciousbrains/wp-background-processing
  */
 
-namespace VanillePluginTask;
+declare(strict_types=1);
+
+namespace VanilleTask;
 
 use VanillePlugin\inc\System;
 use VanillePlugin\inc\Stringify;
@@ -33,7 +36,7 @@ abstract class AbstractBackgroundProcess extends AbstractAsyncRequest
 	protected $cronInterval;
 
 	/**
-	 * Init new background process
+	 * Init new background process.
 	 *
 	 * @param void
 	 */
@@ -47,7 +50,7 @@ abstract class AbstractBackgroundProcess extends AbstractAsyncRequest
 	}
 
 	/**
-	 * Dispatch process
+	 * Dispatch process.
 	 *
 	 * @access public
 	 * @param void
@@ -63,7 +66,7 @@ abstract class AbstractBackgroundProcess extends AbstractAsyncRequest
 	}
 
 	/**
-	 * Push data to queue
+	 * Push data to queue.
 	 *
 	 * @access public
 	 * @param mixed $data
@@ -76,7 +79,7 @@ abstract class AbstractBackgroundProcess extends AbstractAsyncRequest
 	}
 
 	/**
-	 * Save queue
+	 * Save queue.
 	 *
 	 * @access public
 	 * @param void
@@ -92,7 +95,7 @@ abstract class AbstractBackgroundProcess extends AbstractAsyncRequest
 	}
 
 	/**
-	 * Update queue
+	 * Update queue.
 	 *
 	 * @access public
 	 * @param string $key
@@ -108,7 +111,7 @@ abstract class AbstractBackgroundProcess extends AbstractAsyncRequest
 	}
 
 	/**
-	 * Delete queue
+	 * Delete queue.
 	 *
 	 * @access public
 	 * @param string $key
@@ -121,7 +124,7 @@ abstract class AbstractBackgroundProcess extends AbstractAsyncRequest
 	}
 
 	/**
-	 * Cancel process
+	 * Cancel process.
 	 *
 	 * @access public
 	 * @param void
@@ -137,7 +140,7 @@ abstract class AbstractBackgroundProcess extends AbstractAsyncRequest
 	}
 
 	/**
-	 * Maybe process queue
+	 * Maybe process queue.
 	 *
 	 * @access protected
 	 * @param void
@@ -162,7 +165,7 @@ abstract class AbstractBackgroundProcess extends AbstractAsyncRequest
 	}
 
 	/**
-	 * Schedule cron
+	 * Schedule cron.
 	 *
 	 * @access public
 	 * @param mixed $schedules
@@ -182,7 +185,7 @@ abstract class AbstractBackgroundProcess extends AbstractAsyncRequest
 	}
 
 	/**
-	 * Handle cron
+	 * Handle cron.
 	 *
 	 * @access public
 	 * @param void
@@ -202,7 +205,7 @@ abstract class AbstractBackgroundProcess extends AbstractAsyncRequest
 	}
 
 	/**
-	 * Generate batch key
+	 * Generate batch key.
 	 *
 	 * @access protected
 	 * @param int $length
@@ -215,7 +218,7 @@ abstract class AbstractBackgroundProcess extends AbstractAsyncRequest
 	}
 
 	/**
-	 * Is queue empty
+	 * Is queue empty.
 	 *
 	 * @access protected
 	 * @param void
@@ -230,7 +233,7 @@ abstract class AbstractBackgroundProcess extends AbstractAsyncRequest
 	}
 
 	/**
-	 * Is process running
+	 * Is process running.
 	 *
 	 * @access protected
 	 * @param void
@@ -245,7 +248,7 @@ abstract class AbstractBackgroundProcess extends AbstractAsyncRequest
 	}
 
 	/**
-	 * Lock process
+	 * Lock process.
 	 *
 	 * @access protected
 	 * @param void
@@ -259,7 +262,7 @@ abstract class AbstractBackgroundProcess extends AbstractAsyncRequest
 	}
 
 	/**
-	 * Unlock process
+	 * Unlock process.
 	 *
 	 * @access protected
 	 * @param void
@@ -272,7 +275,7 @@ abstract class AbstractBackgroundProcess extends AbstractAsyncRequest
 	}
 
 	/**
-	 * Get batch
+	 * Get batch.
 	 *
 	 * @access protected
 	 * @param void
@@ -290,7 +293,7 @@ abstract class AbstractBackgroundProcess extends AbstractAsyncRequest
 	}
 
 	/**
-	 * Handle process
+	 * Handle process.
 	 *
 	 * @access protected
 	 * @param void
@@ -336,7 +339,7 @@ abstract class AbstractBackgroundProcess extends AbstractAsyncRequest
 	}
 
 	/**
-	 * Time out
+	 * Time out.
 	 *
 	 * @access protected
 	 * @param void
@@ -353,7 +356,7 @@ abstract class AbstractBackgroundProcess extends AbstractAsyncRequest
 	}
 
 	/**
-	 * Complete process
+	 * Complete process.
 	 *
 	 * @access protected
 	 * @param void
@@ -365,7 +368,7 @@ abstract class AbstractBackgroundProcess extends AbstractAsyncRequest
 	}
 
 	/**
-	 * Schedule event
+	 * Schedule event.
 	 *
 	 * @access protected
 	 * @param void
@@ -379,7 +382,7 @@ abstract class AbstractBackgroundProcess extends AbstractAsyncRequest
 	}
 
 	/**
-	 * Clear scheduled event
+	 * Clear scheduled event.
 	 *
 	 * @access protected
 	 * @param void
@@ -394,7 +397,7 @@ abstract class AbstractBackgroundProcess extends AbstractAsyncRequest
 	}
 
 	/**
-	 * Perform task
+	 * Perform task.
 	 *
 	 * @access protected
 	 * @param mixed $item

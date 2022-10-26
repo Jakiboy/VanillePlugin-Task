@@ -1,21 +1,23 @@
 <?php
 /**
- * @author    : JIHAD SINNAOUR
- * @package   : VanillePluginTask
- * @version   : 0.1.3
- * @copyright : (c) 2018 - 2021 JIHAD SINNAOUR <mail@jihadsinnaour.com>
- * @link      : https://jakiboy.github.io/VanillePluginTask/
- * @license   : MIT
+ * @author     : JIHAD SINNAOUR
+ * @package    : VanillePlugin
+ * @subpackage : VanilleTask
+ * @version    : 0.1.4
+ * @copyright  : (c) 2018 - 2022 JIHAD SINNAOUR <mail@jihadsinnaour.com>
+ * @link       : https://jakiboy.github.io/VanillePluginTask/
+ * @license    : MIT
  *
- * This file if a part of VanillePluginTask
- * Cloned from deliciousbrains/wp-background-processing
+ * This file if a part of VanillePlugin Framework.
+ * @see Credits: https://github.com/deliciousbrains/wp-background-processing
  */
 
-namespace VanillePluginTask;
+declare(strict_types=1);
 
-use VanillePlugin\int\PluginNameSpaceInterface;
+namespace VanilleTask;
+
 use VanillePlugin\lib\Db;
-use VanillePlugin\lib\Request;
+use VanillePlugin\inc\Request;
 use VanillePlugin\inc\Stringify;
 use VanillePlugin\inc\Server;
 
@@ -32,7 +34,7 @@ abstract class AbstractAsyncRequest extends Db
 	protected $data = [];
 
 	/**
-	 * Init new async request
+	 * Init new async request.
 	 *
 	 * @param void
 	 */
@@ -45,10 +47,10 @@ abstract class AbstractAsyncRequest extends Db
 	}
 
 	/**
-	 * Set data used during the request
+	 * Set data used during the request.
 	 *
 	 * @param array $data
-	 * @return object AbstractAsyncRequest
+	 * @return object
 	 */
 	public function setData($data)
 	{
@@ -57,10 +59,10 @@ abstract class AbstractAsyncRequest extends Db
 	}
 
 	/**
-	 * Dispatch the async request
+	 * Dispatch the async request.
 	 *
 	 * @param void
-	 * @return array|object
+	 * @return mixed
 	 */
 	public function dispatch()
 	{
@@ -71,7 +73,7 @@ abstract class AbstractAsyncRequest extends Db
 	}
 
 	/**
-	 * Check for correct nonce and pass to handler
+	 * Check for correct nonce and pass to handler.
 	 *
 	 * @param void
 	 * @return void
@@ -80,15 +82,18 @@ abstract class AbstractAsyncRequest extends Db
 	{
 		// Prevent other requests while processing
 		$this->closeSession();
+
 		// Security
 		$this->checkAjaxReferer($this->id,'nonce');
+
 		// Handle request
 		$this->handle();
+
 		die();
 	}
 
 	/**
-	 * Get request query args
+	 * Get request query args.
 	 *
 	 * @param void
 	 * @return array
@@ -102,7 +107,7 @@ abstract class AbstractAsyncRequest extends Db
 	}
 
 	/**
-	 * Close session
+	 * Close session.
 	 *
 	 * @param void
 	 * @return void
@@ -113,7 +118,7 @@ abstract class AbstractAsyncRequest extends Db
 	}
 
 	/**
-	 * Get request query URL
+	 * Get request query URL.
 	 *
 	 * @param void
 	 * @return string
@@ -124,7 +129,7 @@ abstract class AbstractAsyncRequest extends Db
 	}
 
 	/**
-	 * Get post request args
+	 * Get post request args.
 	 *
 	 * @param void
 	 * @return array
@@ -141,7 +146,7 @@ abstract class AbstractAsyncRequest extends Db
 	}
 
 	/**
-	 * Handle request
+	 * Handle request.
 	 *
 	 * @param void
 	 * @return mixed
