@@ -4,8 +4,6 @@ Add Asynchronous **Non-blocking** Tasks for VanillePlugin, Requires [VanillePlug
 
 ## ⚡ Installing:
 
-Using composer.
-
 ```
 composer require jakiboy/vanilleplugin-Task
 ```
